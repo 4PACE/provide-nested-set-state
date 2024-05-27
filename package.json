@@ -1,0 +1,28 @@
+{
+  "name": "provide-nested-set-state",
+  "version": "0.4.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest --coverage"
+  },
+  "keywords": [
+    "React",
+    "setState",
+    "state-management"
+  ],
+  "author": "Stefan Dausend-Werner",
+  "license": "MIT",
+  "devDependencies": {
+    "@vitest/coverage-v8": "^1.6.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  },
+  "dependencies": {
+    "many-keys-map": "^2.0.1",
+    "memoize": "^10.0.0"
+  }
+}
