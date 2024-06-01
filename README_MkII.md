@@ -74,79 +74,116 @@ export const MyComponent = (): JSX.Element => {
 simplifying state management and ensuring type safety.
 
 You can copy and paste this example into your project to see how it works. 
-Create a City.tsx file and add the <City /> component to your App component.
-Or check the examples folder in the repository.
+Create a `City.tsx` file and add the <City /> component to your App component.
+You can also check the examples folder in the repository or test the code directly
+<a href="https://stackblitz.com/edit/pnss-city-example?file=src%2FCity.tsx">in your browser</a>.
 
 ```tsx
-import { JSX, useState } from "react";
-// SetState<T> is a type alias for Dispatch<SetStateAction<T>>, 
+import { JSX, useState } from 'react';
+// SetState<T> is a type alias for Dispatch<SetStateAction<T>>,
 // the type of the function returned by useState
 // it just makes typing a bit easier
-import { SetState, provideNestedSetState } from "provide-nested-set-state";
+import { SetState, provideNestedSetState } from 'provide-nested-set-state';
 
+// The root state
 type City = {
   name: string;
-  inhabitans: number;
+  inhabitants: number;
   sights: Sight[];
 };
 
+// The nested state, two steps down, e.g. `myCity.sights[3]`
 type Sight = {
   name: string;
   rating: number; // Rating from 1 to 10
   comment: string;
 };
 
+// The root component
 export const City = (): JSX.Element => {
   const [city, setCity] = useState<City>({
-    name: "Göteborg",
-    inhabitans: 597_000 ,
+    name: 'Göteborg',
+    inhabitants: 597_000,
     sights: [
       {
-        name: "Liseberg",
+        name: 'Liseberg',
         rating: 9,
-        comment: "A must-visit amusement park.",
+        comment: 'A must-visit amusement park.',
       },
       {
-        name: "Universeum",
+        name: 'Universeum',
         rating: 8,
-        comment: "Science center with a rainforest and aquarium.",
+        comment: 'Science center with a rainforest and aquarium.',
       },
     ],
   });
-  return <div>
-    <h1>{city.name}</h1>
-    <p>Inhabitants: {city.inhabitants}</p>
-    <h2>Sights</h2>
-    {city.sights.map((sight, index) => {
-      // Provide the setState function to the nested Sight component
-      // the first param is the parent setState, the following params are the keys of the path to the nested state
-      // the path is type safe, try to change the key to something else than "sights", you will get a type error
-      // nestedSetState is of type SetState<Sight> but will update the full City state
-      const nestedSetState: SetState<Sight> = provideNestedSetState(setCity, "sights", index);
-      return (<Sight sight={sight} setSight={nestedSetState} key={index}/>
-      );
-    })}
-  </div>
-  
-  const Sight = ({sight, setSight}: {sight: Sight, setSight: SetState<Sight>} ): JSX.Element => {
-    function updateRating(rating: number) {
-      // setSight is the setState function provided by provideNestedSetState
-      // it is used just like the original setState function returned by useState
-      // it only takes the nested state and updates the full parent state so the React components will rerender
-      setSight({...sight, rating});
-      // or you can use the callback version 
-      // setSight((prevSight) => ({...prevSight, rating}));
-    }
-    return <div>
-      <h3>{sight.name}</h3>
-      <p>Rating: 
-        <button onclick={() => updateRating(sight.rating - 1)}>-</button> 
-        {sight.rating} 
-        <button onclick={() => updateRating(sight.rating + 1)}>+</button></p>
-      <p>Comment: {sight.comment}</p>
+  return (
+    <div>
+      <h1>{city.name}</h1>
+      <p>Inhabitants: {city.inhabitants}</p>
+      <h2>Sights</h2>
+      {city.sights.map((sight, index) => {
+        // Provide the setState function to the nested Sight component
+        // the first param is the parent setState, the following params are the keys of the path to the nested state
+        // the path is type safe, try to change the key to something else than "sights", you will get a type error
+        // nestedSetState is of type SetState<Sight> but will update the full City state
+        const nestedSetState: SetState<Sight> = provideNestedSetState(
+          setCity,
+          'sights',
+          index
+        );
+        return <Sight sight={sight} setSight={nestedSetState} key={index} />;
+      })}
+      <hr />
+      <code>
+        <h3>The city state (the only state used):</h3>
+        {JSON.stringify(city, null, 2)}
+      </code>
     </div>
+  );
+};
+
+// The child component using the nested state and a nested set state
+const Sight = ({
+  sight,
+  setSight,
+}: {
+  sight: Sight;
+  setSight: SetState<Sight>;
+}): JSX.Element => {
+  function handleInput(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    // setSight is the setState function provided by provideNestedSetState
+    // it is used just like the original setState function returned by useState
+    // it only takes the nested state and updates the full parent state so the React components will rerender
+    setSight({ ...sight, comment: e.target.value });
   }
-}
+
+  function updateRating(ratingChange: number) {
+    // you can also pass a callback function to get hold of the previous state
+    setSight((prev) => ({ ...sight, rating: prev.rating + ratingChange }));
+  }
+
+  return (
+    <div>
+      <h3>{sight.name}</h3>
+      <div className="box">
+        <p>
+          Rating:
+          <button onClick={() => updateRating(-1)}>-</button>
+          {sight.rating}
+          <button onClick={() => updateRating(+1)}>+</button>
+        </p>
+        <p>Comment: {sight.comment}</p>
+        <textarea
+          value={sight.comment}
+          onChange={handleInput}
+          rows={3}
+          cols={25}
+        />
+      </div>
+    </div>
+  );
+};
 ```
 By using provideNestedSetState directly as the value for the setSight prop, you can further simplify
 your code and eliminate the need for an intermediate variable.
