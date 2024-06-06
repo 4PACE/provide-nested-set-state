@@ -5,19 +5,7 @@ Yet updating nested state is surprisingly complicated.
 This library provides a simple, performant and type safe way to update nested state in React child 
 components. 
 
-// TODO should this part go into discussion?
-
-The official React documentation recommends to [Avoid deeply nested state](
-https://react.dev/learn/choosing-the-state-structure#avoid-deeply-nested-state). Stating that 
-_Updating nested state involves making copies of objects all the way up from the part that changed._
-This is where provide-nested-set-state comes in.
-
-provide-nested-set-state is a small library that provides a function `provideNestedSetState` 
-
-updating nested state manually is a tedious task and leads to tight coupling between components.
-
-The official React documentation recommends to us flattened state. But flattened state 
-can become difficult to understand and maintain.
+Impatient? Check the <a href="https://stackblitz.com/edit/pnss-city-example?file=src%2FCity.tsx">City demo</a>.
 
 
 
@@ -25,6 +13,7 @@ can become difficult to understand and maintain.
 
 ## Installation
 
+Install it using your favorite package manager.
 ```bash
 npm install provide-nested-set-state
 ```
@@ -36,15 +25,18 @@ yarn install provide-nested-set-state
 ## Usage
 
 The easiest and built-in way to keep state in React is by using the useState hook. 
-It provides the current state and a function to update the state, the setState function.
-This library provides a function `provideNestedSetState` that takes a setState function provided by 
-useState and a path to the nested state you want to update. It returns a new setState function that
-you can use in child components to update the nested state.
+It provides the current state and a function to update the state.
+This library provides a function `provideNestedSetState` that takes the setState function provided by 
+useState hook and a path to the nested state you want to update.
+It returns a new setState function that you can use in child components to update the nested state.
+The parent state will automatically be updated accordingly causing the components using the state to update. 
 
 ### Basic Example
 
 ```tsx
 import { JSX, useState } from "react";
+// The type SetState<T> is just a convenient alias for Dispatch<SetStateAction<T>>, 
+// the type of the update function returned by the useState hook 
 import { SetState, provideNestedSetState } from "provide-nested-set-state";
 
 export const MyComponent = (): JSX.Element => {
@@ -57,12 +49,14 @@ export const MyComponent = (): JSX.Element => {
   );
   
   // provideNestedSetState takes the parent setState function and the path to the nested state
+  // as strings and / or numbers, this path is type safe
   // it returns a new setState function that can be used to update the nested state
   const nestedSetState: SetState<number> = provideNestedSetState(setState, "nested", "value");
   return (
     <div>
       <p>{state.nested.value}</p>
       <button onClick={() => nestedSetState(prev => prev + 1)}>Increment</button>
+      <button onClick={() => nestedSetState(0)}>Reset</button>
     </div>
   )
 }
@@ -75,8 +69,9 @@ simplifying state management and ensuring type safety.
 
 You can copy and paste this example into your project to see how it works. 
 Create a `City.tsx` file and add the <City /> component to your App component.
-You can also check the examples folder in the repository or test the code directly
-<a href="https://stackblitz.com/edit/pnss-city-example?file=src%2FCity.tsx">in your browser</a>.
+You can also check the examples folder in the repository or test 
+<a href="https://stackblitz.com/edit/pnss-city-example?file=src%2FCity.tsx">City demo</a>
+directly in your browser.
 
 ```tsx
 import { JSX, useState } from 'react';
@@ -220,10 +215,23 @@ jotai
 ?immer
 
 ## Limitations
-nesting "only" 7 levels deep
+Currently the `provideNestedSetState` can be used "only" seven levels deep. This should cover any
+sane use case for state management. Seven levels is for example `obj.a.b.c.d.e.f.g` or `obj.a[1].c[0].e[5].g`
+or `arr[0][1][2][3][4][5][6]`. Data that deep or even deeper might indicate a need to refactor. 
+If you really want / have to go there you can 
 
 ## FAQ
-- Use with plain JavaScript
-- How does provideNestedSetState change the state?
-- Use with non serializable state
+- _Can I use `provideNestedSetState` with plain JavaScript?_
+Sure. Usage in plain JavaScript is the same. You will lose the type safety of course.
+
+
+- _How does `provideNestedSetState` change the state?_
+`provideNestedSetState` will not modify the state at all until called. Under the hood it returns 
+a function that - once it is called - will call the original setState and provide it with what you
+called it with, updating the original state using the path you provided. 
+
+
+- _Can I use `provideNestedSetState` with non-serializable state?_
+No, `provideNestedSetState` supports only serializable state. That is literal objects
+(`{}`), arrays (`[]`), number, string, boolean. 
 
