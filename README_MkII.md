@@ -1,15 +1,31 @@
+//////////////////////////////////////////////////////////////////  
+// TODOs  
+**Release relevant:**  
+[v] Ponder: do I really need an examples folder? Or is stackblitz sufficient? → Start with stackblitz only, examples can be transferred later    
+[.] Examples  
+  [ ] Simple examples → Usage with 
+    [ ] objects 
+    [ ] arrays 
+    [ ] primitives  
+  [v] City example  
+  [ ] TravelList example
+[v] Performance considerations  
+
+**Post release**  
+[ ] How about WeakMap?  
+[ ] Example folder  
+[ ] Coverage badge  
+[ ] Interop with other libraries  
+
+
+//////////////////////////////////////////////////////////////////
 # Provide Nested Set State
 
-React makes it very easy to render nested state. 
-Yet updating nested state is surprisingly complicated. 
-This library provides a simple, performant and type safe way to update nested state in React child 
-components. 
+React makes it very easy to render nested state. Yet updating nested state is surprisingly 
+complicated. This library provides a simple, performant and type safe way to update nested state 
+in React child components. 
 
 Impatient? Check the <a href="https://stackblitz.com/edit/pnss-city-example?file=src%2FCity.tsx">City demo</a>.
-
-
-
-// TODO table of contents
 
 ## Installation
 
@@ -192,27 +208,64 @@ your code and eliminate the need for an intermediate variable.
 
 ### Usage with deeply nested state
 
-provideNestedSetState can be used with setState functions that were created with provideNestedSetState.
-This allows you to update deeply nested state in a type safe way.
+`provideNestedSetState` can be used with setState functions that were created with provideNestedSetState.
+This allows you to update deeply nested state in a type safe way. You can use this to pass a nested
+setState to a child component and pass deeper nested setState functions to its grandchild components.
 
-see TravelList in the examples folder 
+The TravelList example shows how this can be used multiple components deep. 
+
+```tsx
+export const MyComponent = (): JSX.Element => {
+  const [state, setState] = useState(
+    {
+      nested1: {
+        nested2: [
+          { nested4: 0 }
+        ]
+      }
+    }
+  );
+  
+  const nested1SetState = provideNestedSetState(setState, "nested1");
+  const nested2SetState = provideNestedSetState(setState, "nested2");
+  const nested3SetState = provideNestedSetState(setState, 0);
+  const nested4SetState = provideNestedSetState(setState, "nested4");
+  return (
+    <div>
+      <p>{state.nested1.nested2[0].nested4}</p>
+      <button onClick={() => nested4SetState(prev => prev + 1)}>Increment</button>
+      <button onClick={() => nested4SetState(0)}>Reset</button>
+    </div>
+  )
+}
+```
 
 ### Usage with objects, arrays and primitives
 
 ## Performance Considerations
 
-provideNestedSetState provides memoization for the returned setState function.
-This means that the returned setState function will only be recreated when 
+Using `provideNestedSetState` in a root component and passing the new setState functions down the
+component tree, will cause all child components of the tree to rerender when a state in a child
+component is changed. For small data sets this is not a problem. But very long lists or deeply 
+nested trees may become laggy due to the amount of rerenders. This is a common consideration in React 
+development and React offers a simple solution with the <a href="">memo</a> function. 
+From the documentation:
+> React normally re-renders a component whenever its parent re-renders. With memo, you can create a
+> component that React will not re-render when its parent re-renders so long as its new props are
+> the same as the old props.
 
-Consider using memo() from React to memoize the Child components.
+The setState function provided by provideNestedSetState comes memoized out-of-the-box and 
+is referentially stable, meaning it remains consistent across renders. By leveraging memoization,
+you can ensure that components only re-render when necessary, greatly improving performance with
+deeply nested or large data sets.
 
 ## Interop with other libraries
-jotai
-??zustand
-??recoil
-??redux
-??mobx
-?immer
+jotai  
+??zustand  
+??recoil  
+??redux  
+??mobx  
+?immer  
 
 ## Limitations
 Currently the `provideNestedSetState` can be used "only" seven levels deep. This should cover any
