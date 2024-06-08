@@ -6,7 +6,7 @@ in React child components.
 
 ![A gif showing type safety and auto complete for provideNestedSetState](pnss.gif)
 
-Impatient? Check the <a href="https://stackblitz.com/edit/pnss-city-example?file=src%2FCity.tsx">City demo</a>.
+Impatient? Check the <a href="https://stackblitz.com/edit/pnss-city-example?file=src%2FCity.tsx" target="_blank">City demo</a>.
 
 ## Installation
 
@@ -67,7 +67,7 @@ simplifying state management and ensuring type safety.
 You can copy and paste this example into your project to see how it works.
 Create a `City.tsx` file and add the <City /> component to your App component.
 You can also check the examples folder in the repository or test
-<a href="https://stackblitz.com/edit/pnss-city-example?file=src%2FCity.tsx">City demo</a>
+<a href="https://stackblitz.com/edit/pnss-city-example?file=src%2FCity.tsx" target="_blank">City demo</a>
 directly in your browser.
 
 ```tsx
@@ -225,7 +225,7 @@ Using `provideNestedSetState` in a root component and passing the new setState f
 component tree, will cause all child components of the tree to rerender when a state in a child
 component is changed. For small data sets this is not a problem. But very long lists or deeply
 nested trees may become laggy due to the amount of rerenders. This is a common consideration in React
-development and React offers a simple solution with the <a href="">memo</a> function.
+development and React offers a simple solution with the <a href="https://react.dev/reference/react/memo" target="_blank">memo</a> function.
 From the documentation:
 > React normally re-renders a component whenever its parent re-renders. With memo, you can create a
 > component that React will not re-render when its parent re-renders so long as its new props are
