@@ -4,7 +4,7 @@ React makes it very easy to render nested state. Yet updating nested state is su
 complicated. This library provides a simple, performant and type safe way to update nested state
 in React child components.
 
-![A gif showing type safety and auto complete for provideNestedSetState]("pNSS.gif")
+![A gif showing type safety and auto complete for provideNestedSetState](pnss.gif)
 
 Impatient? Check the <a href="https://stackblitz.com/edit/pnss-city-example?file=src%2FCity.tsx">City demo</a>.
 
