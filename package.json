@@ -4,7 +4,7 @@
     "type": "git",
     "url": "https://github.com/4PACE/provide-nested-set-state.git"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple, performant, and type-safe way to update nested state in React child components.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
