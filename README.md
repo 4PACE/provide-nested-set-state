@@ -2,7 +2,7 @@
 
 React makes it very easy to render nested state. Yet updating nested state is surprisingly
 complicated. This library provides a simple, performant and type safe way to update nested state
-in React child components.
+from React child components.
 
 ![A gif showing type safety and auto complete for provideNestedSetState](pnss.gif)
 
@@ -18,6 +18,17 @@ npm install provide-nested-set-state
 ```bash
 yarn install provide-nested-set-state
 ```
+
+## Features
+
+- Supports deeply nested state management, ideal for complex state structures.
+- Type-safe nested state updates that ensure all nested updates adhere to expected types.
+- Easy integration with the existing useState hook for a smooth development experience.
+- Provides an intuitive and simple API, reducing boilerplate and simplifying state management.
+- Isolates components from nested state, ensuring independent state updates and better modularity.
+- Maintains immutable state updates, ensuring that updates do not mutate the existing state directly.
+- Memoized setState functions that prevent unnecessary re-renders, ensuring only components that 
+  changed are rerendered. See [performance considerations](#performance-considerations) for more information.
 
 ## Usage
 
@@ -91,24 +102,27 @@ type Sight = {
   comment: string;
 };
 
+// the nested state
+const goeteborg = {
+  name: 'Göteborg',
+  inhabitants: 597_000,
+  sights: [
+    {
+      name: 'Liseberg',
+      rating: 9,
+      comment: 'A must-visit amusement park.',
+    },
+    {
+      name: 'Universeum',
+      rating: 8,
+      comment: 'Science center with a rainforest and aquarium.',
+    },
+  ],
+}
+
 // The root component
 export const City = (): JSX.Element => {
-  const [city, setCity] = useState<City>({
-    name: 'Göteborg',
-    inhabitants: 597_000,
-    sights: [
-      {
-        name: 'Liseberg',
-        rating: 9,
-        comment: 'A must-visit amusement park.',
-      },
-      {
-        name: 'Universeum',
-        rating: 8,
-        comment: 'Science center with a rainforest and aquarium.',
-      },
-    ],
-  });
+  const [city, setCity] = useState<City>(goeteborg);
   return (
     <div>
       <h1>{city.name}</h1>
@@ -140,6 +154,8 @@ const Sight = ({
   sight,
   setSight,
 }: {
+  // The child component only needs the part of the state it display and the setState function it.
+  // It can be reused anywhere outside the City state. 
   sight: Sight;
   setSight: SetState<Sight>;
 }): JSX.Element => {
@@ -221,44 +237,45 @@ export const MyComponent = (): JSX.Element => {
 
 ## Performance Considerations
 
-Using `provideNestedSetState` in a root component and passing the new setState functions down the
-component tree, will cause all child components of the tree to rerender when a state in a child
-component is changed. For small data sets this is not a problem. But very long lists or deeply
-nested trees may become laggy due to the amount of rerenders. This is a common consideration in React
-development and React offers a simple solution with the <a href="https://react.dev/reference/react/memo" target="_blank">memo</a> function.
+Updating the state in a child component will update the state in the parent component as well. This 
+causes it to rerender, along with all its child components For small data sets this is not a 
+problem. But very long lists or deeply nested trees may become laggy due to the amount of rerenders. 
+This is a common consideration in React development and React offers a solution with the memo function.
+
 From the documentation:
 > React normally re-renders a component whenever its parent re-renders. With memo, you can create a
 > component that React will not re-render when its parent re-renders so long as its new props are
 > the same as the old props.
 
-The setState function provided by provideNestedSetState comes memoized out-of-the-box and
-is referentially stable, meaning it remains consistent across renders. By leveraging memoization,
+The setState function provided by provideNestedSetState is memoized out-of-the-box and
+is referentially stable, meaning it remains consistent across renders. By using React 
+<a href="https://react.dev/reference/react/memo" target="_blank">memo</a>,
 you can ensure that components only re-render when necessary, greatly improving performance with
 deeply nested or large data sets.
 
 ## Limitations
-Currently, the `provideNestedSetState` can be used "only" seven levels deep. This should cover any
-sane use case for state management. Seven levels is for example `obj.a.b.c.d.e.f.g` or `obj.a[1].c[0].e[5].g`
-or `arr[0][1][2][3][4][5][6]`. Data that deep or even deeper might indicate a need to refactor.
-If you really want to / have to go there you can call `provideNestedSetState` seven levels deep and
-call it again on the resulting function.
+Currently, the `provideNestedSetState` can be used "only" seven levels deep. This should cover most 
+common use cases for state management. Seven levels is for example `obj.a.b.c.d.e.f.g` or `obj.a[1].c[0].e[5].g`
+or `arr[0][1][2][3][4][5][6]`. For scenarios requiring deeper nesting, you can call 
+`provideNestedSetState` again on the resulting function.
 ```typescript
 const sevenLevelsDeep = provideNestedSetState(setState, "a", "b", "c", "d", "e", "f", "g",);
 const evenDeeperStill = provideNestedSetState(sevenLevelsDeep, "h", "h", "i");
 ```
 
 ## FAQ
-- _Can I use `provideNestedSetState` with plain JavaScript?_
-  Sure. Usage in plain JavaScript is the same. You will lose the type safety of course.
+- _Can I use `provideNestedSetState` with plain JavaScript?_  
+  Sure. Usage in plain JavaScript is the same.
 
 
-- _How does `provideNestedSetState` change the state?_
-  `provideNestedSetState` will not modify the state at all until called. Under the hood it returns
-  a function that - once it is called - will call the original setState and provide it with what you
-  called it with, updating the original state using the path you provided.
+- _How does `provideNestedSetState` change the state?_  
+  `provideNestedSetState` will not modify the state directly. It relies on function 
+  composition and will return a function that - once it is called - will call the original setState.
+  It will update the original state using the path and state changes you provided.
 
 
-- _Can I use `provideNestedSetState` with non-serializable state?_
+- _Can I use `provideNestedSetState` with non-serializable state?_  
   No, `provideNestedSetState` supports only serializable state. That is literal objects
-  (`{}`), arrays (`[]`), number, string, boolean. 
+  (`{}`), arrays (`[]`), number, string, boolean. If you have a use case for non-serializable state,
+  please open a ticket.
 
